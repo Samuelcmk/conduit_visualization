@@ -1,0 +1,2000 @@
+<!DOCTYPE html>
+<html lang="zh-TW" xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conduit & Cable Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .header-left h1 {
+            margin: 0;
+            font-size: 2.2em;
+            font-weight: 300;
+        }
+        
+        .header-left p {
+            margin: 5px 0 0 0;
+            opacity: 0.9;
+        }
+        
+        .language-selector {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .lang-btn {
+            padding: 8px 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            background: transparent;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .lang-btn.active {
+            background: white;
+            color: #2c3e50;
+            border-color: white;
+        }
+        
+        .lang-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .lang-btn.active:hover {
+            background: white;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .cable-management {
+            background: linear-gradient(135deg, #e8f5e8 0%, #f1f8e9 100%);
+        }
+        
+        .cable-spec {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+        }
+        
+        .calculation {
+            background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%);
+        }
+        
+        .result {
+            background: linear-gradient(135deg, #f0f4f8 0%, #e6f3ff 100%);
+        }
+        
+        .visualization {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+        }
+        
+        .cable-input-form {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr auto;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .form-row input, .form-row select {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #1e7e34;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .cable-list {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .cable-item {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr auto;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .cable-item.editing {
+            background-color: #f8f9fa;
+            border: 2px solid #007bff;
+            border-radius: 8px;
+        }
+        
+        .cable-item:last-child {
+            border-bottom: none;
+        }
+        
+        .cable-item:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .cable-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 10px;
+            border: 2px solid #ddd;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        th, td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #3f51b5 0%, #5c6bc0 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .calculation-step {
+            background: white;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            border-left: 5px solid #2196f3;
+        }
+        
+        .formula {
+            font-family: 'Courier New', monospace;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .result-box {
+            background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 1.3em;
+            margin: 20px 0;
+        }
+        
+        .conduit-selector {
+            background: white;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 15px;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .selector-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .selector-group {
+            display: flex;
+            align-items: center;
+        }
+        
+        .selector-group input[type="radio"] {
+            margin-right: 15px;
+            transform: scale(1.2);
+        }
+        
+        .selector-group label {
+            flex: 1;
+            cursor: pointer;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+        
+        .selector-group input[type="radio"]:checked + label {
+            border-color: #2196f3;
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+        }
+        
+        .option-header {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+        }
+        
+        .option-status {
+            font-size: 0.9em;
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        
+        .status-ok {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-tight {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+                 .status-fail {
+             background: #f8d7da;
+             color: #721c24;
+         }
+         
+         .status-overfill {
+             background: #fff3cd;
+             color: #856404;
+             border: 2px solid #ffc107;
+         }
+         
+         .add-conduit-form {
+             background: #f8f9fa;
+             padding: 20px;
+             border-radius: 10px;
+             margin-bottom: 20px;
+             border: 2px dashed #dee2e6;
+         }
+         
+         .custom-conduit-row {
+             display: grid;
+             grid-template-columns: 1fr 2fr auto;
+             gap: 15px;
+             align-items: center;
+             margin-top: 15px;
+         }
+         
+         .custom-conduit-row input {
+             padding: 10px;
+             border: 2px solid #e0e0e0;
+             border-radius: 8px;
+             font-size: 14px;
+         }
+         
+         .conduit-option {
+             position: relative;
+         }
+         
+         .delete-conduit {
+             position: absolute;
+             top: 10px;
+             right: 10px;
+             background: #dc3545;
+             color: white;
+             border: none;
+             border-radius: 50%;
+             width: 25px;
+             height: 25px;
+             font-size: 12px;
+             cursor: pointer;
+             display: none;
+         }
+         
+         .selector-group:hover .delete-conduit {
+             display: block;
+         }
+         
+         .delete-conduit:hover {
+             background: #c82333;
+         }
+        
+        .visual-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 30px 0;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            gap: 30px;
+        }
+
+        .visualization-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        .conduit-visual {
+            position: relative;
+            margin: 20px;
+        }
+        
+        .conduit-circle {
+            border: 4px solid #2c3e50;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: rgba(52, 73, 94, 0.1);
+        }
+        
+        .cable {
+            border-radius: 50%;
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .legend {
+            margin-left: 40px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        .highlight {
+            background: yellow;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                text-align: center;
+            }
+            
+            .form-row, .cable-item {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .visual-container {
+                flex-direction: column;
+            }
+            
+            .legend {
+                margin-left: 0;
+                margin-top: 20px;
+            }
+        }
+    </style>
+
+<!--[if gte mso 9]><xml>
+<mso:CustomDocumentProperties>
+<mso:_dlc_DocId msdt:dt="string">T5M7EVUWMTMA-1677445232-1697517</mso:_dlc_DocId>
+<mso:_dlc_DocIdItemGuid msdt:dt="string">65c036bc-52b0-45a5-ab26-fd288be896a7</mso:_dlc_DocIdItemGuid>
+<mso:_dlc_DocIdUrl msdt:dt="string">https://mtrchk.sharepoint.com/sites/doms_t_crs/_layouts/15/DocIdRedir.aspx?ID=T5M7EVUWMTMA-1677445232-1697517, T5M7EVUWMTMA-1677445232-1697517</mso:_dlc_DocIdUrl>
+</mso:CustomDocumentProperties>
+</xml><![endif]-->
+</head>
+<body>
+    <div class="container">
+                 <div class="header">
+             <div class="header-left">
+                 <h1 data-lang="title">🔌 Conduit & Cable Visualizer</h1>
+                 <p data-lang="subtitle">動態管理線纜並計算所需的conduit內徑</p>
+                 <div style="background: rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 6px; margin-top: 10px; font-size: 13px;">
+                     <strong data-lang="disclaimer-title">⚠️ 免責聲明 / Disclaimer: Only for reference</strong><br>
+                     <span data-lang="disclaimer-text" style="font-size: 11px; opacity: 0.9;">此計算器僅供參考</span>
+                 </div>
+             </div>
+             <div class="language-selector">
+                 <button class="lang-btn" onclick="switchLanguage('zh')" data-lang="lang-zh">中文</button>
+                 <button class="lang-btn active" onclick="switchLanguage('en')" data-lang="lang-en">English</button>
+             </div>
+         </div>
+        
+        <div class="content">
+            <!-- Cable Management Section -->
+            <div class="section cable-management">
+                <h2 data-lang="cable-management-title">📝 線纜管理</h2>
+                
+                <div class="cable-input-form">
+                    <h3 data-lang="add-cable">添加新線纜</h3>
+                    <div class="form-row">
+                        <input type="text" id="cableSource" placeholder="" data-lang-placeholder="cable-source-placeholder">
+                        <div style="display: flex; flex-direction: column; gap: 5px;">
+                            <select id="cableType" onchange="toggleCustomType()">
+                                <option value="LAN">LAN</option>
+                                <option value="PWR">PWR</option>
+                                <option value="RS232">RS232</option>
+                                <option value="Fiber">Fiber</option>
+                                <option value="Coax">Coax</option>
+                                <option value="Cable Head" data-lang="cable-head">線頭</option>
+                                <option value="Custom" data-lang="custom">自定義</option>
+                            </select>
+                            <input type="text" id="customCableType" style="display: none;" placeholder="輸入自定義類型" data-lang-placeholder="custom-type-placeholder">
+                        </div>
+                        <input type="number" id="cableQuantity" min="1" value="1" data-lang-placeholder="quantity-placeholder">
+                        <div id="shapeSelection" style="display: none;">
+                            <select id="cableShape" onchange="toggleShapeInputs()">
+                                <option value="round" data-lang="round-shape">圓形</option>
+                                <option value="rectangle" data-lang="rectangle-shape">矩形</option>
+                            </select>
+                        </div>
+                        <div id="roundInputs">
+                            <select id="cableDiameterSelect" onchange="updateMainDiameterInput()" style="width: 90px; padding: 5px; margin-right: 5px;">
+                                <option value="custom" data-lang="custom-diameter">自定義</option>
+                                <option value="3">3mm</option>
+                                <option value="4">4mm</option>
+                                <option value="5">5mm</option>
+                                <option value="6">6mm</option>
+                                <option value="7">7mm</option>
+                                <option value="8">8mm</option>
+                                <option value="9">9mm</option>
+                                <option value="10">10mm</option>
+                                <option value="12">12mm</option>
+                                <option value="15">15mm</option>
+                                <option value="20">20mm</option>
+                                <option value="25">25mm</option>
+                                <option value="30">30mm</option>
+                                <option value="40">40mm</option>
+                                <option value="50">50mm</option>
+                            </select>
+                            <input type="number" id="cableDiameter" step="0.1" min="0.1" data-lang-placeholder="diameter-placeholder" onchange="updateMainDiameterSelect()">
+                        </div>
+                        <div id="rectangleInputs" style="display: none;">
+                            <input type="number" id="cableWidth" step="0.1" min="0.1" data-lang-placeholder="width-placeholder">
+                            <input type="number" id="cableHeight" step="0.1" min="0.1" data-lang-placeholder="height-placeholder">
+                        </div>
+                        <button class="btn btn-success" onclick="addCable()">
+                            <span data-lang="add">➕ 添加</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="cable-list">
+                    <div id="cableListHeader" class="cable-item" style="background: #f8f9fa; font-weight: bold;">
+                        <span data-lang="cable-source">線纜來源</span>
+                        <span data-lang="cable-type">類型</span>
+                        <span data-lang="cable-quantity">數量</span>
+                        <span data-lang="cable-diameter">直徑 (mm)</span>
+                        <span data-lang="actions">操作</span>
+                    </div>
+                    <div id="cableListContent">
+                        <div class="empty-state">
+                            <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">📋</div>
+                            <p data-lang="no-cables">還沒有添加任何線纜，請先添加線纜信息</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn btn-primary" onclick="loadSampleData()">
+                        <span data-lang="load-sample">📄 載入示例數據</span>
+                    </button>
+                    <button class="btn btn-danger" onclick="clearAllCables()">
+                        <span data-lang="clear-all">🗑️ 清空所有</span>
+                    </button>
+                    <button class="btn btn-success" onclick="exportData()">
+                        <span data-lang="export">💾 導出數據</span>
+                    </button>
+                    <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
+                    <button class="btn btn-primary" onclick="document.getElementById('importFile').click()">
+                        <span data-lang="import">📁 導入數據</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Cable Specifications Table -->
+            <div class="section cable-spec" id="specSection" style="display: none;">
+                <h2 data-lang="cable-specs">📋 線纜規格表</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th data-lang="cable-source">線纜來源</th>
+                            <th data-lang="cable-type">類型</th>
+                            <th data-lang="cable-quantity">數量</th>
+                            <th data-lang="cable-dimensions">線纜尺寸</th>
+                            <th data-lang="single-area">單條截面積 (mm²)</th>
+                            <th data-lang="total-area">總截面積 (mm²)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cableTable">
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Calculation Process -->
+            <div class="section calculation" id="calculationSection" style="display: none;">
+                <h2 data-lang="calculation-process">🧮 計算過程</h2>
+                
+                <div class="calculation-step">
+                    <h3 data-lang="step1">步驟1: 計算各類線纜的總截面積</h3>
+                    <div class="formula" data-lang="formula1">
+                        線纜截面積 = π × (直徑/2)² × 數量
+                    </div>
+                    <div id="calculationDetails"></div>
+                </div>
+                
+                <div class="calculation-step">
+                    <h3 data-lang="step2">步驟2: 計算線纜總截面積</h3>
+                    <div id="totalArea"></div>
+                </div>
+                
+                <div class="calculation-step">
+                    <h3 data-lang="step3">步驟3: 計算所需conduit內徑</h3>
+                    <p>
+                        <span data-lang="fill-ratio-text">根據工程標準，線纜填充率不應超過conduit截面積的</span>
+                        <span class="highlight">40%</span>
+                    </p>
+                    <div class="formula" data-lang="formula2">
+                        Conduit所需截面積 = 線纜總截面積 ÷ 0.4<br>
+                        Conduit內徑 = √(Conduit所需截面積 ÷ π) × 2
+                    </div>
+                    <div id="conduitCalculation"></div>
+                </div>
+            </div>
+            
+            <!-- Calculation Results -->
+            <div class="section result" id="resultSection" style="display: none;">
+                <h2 data-lang="calculation-results">✅ 計算結果</h2>
+                <div class="result-box" id="finalResult">
+                </div>
+                
+                                 <!-- Conduit Selector -->
+                 <div class="conduit-selector">
+                     <h3 data-lang="select-conduit">🔧 選擇可用的Conduit規格</h3>
+                     
+                     <!-- Add Custom Conduit -->
+                     <div class="add-conduit-form">
+                         <h4 data-lang="add-custom-conduit">➕ 添加自定義Conduit規格</h4>
+                         <div class="custom-conduit-row">
+                             <input type="number" id="customDiameter" step="0.1" min="10" max="200" data-lang-placeholder="custom-diameter-placeholder">
+                             <input type="text" id="customName" data-lang-placeholder="custom-name-placeholder">
+                             <button class="btn btn-success" onclick="addCustomConduit()">
+                                 <span data-lang="add-conduit">添加</span>
+                             </button>
+                         </div>
+                     </div>
+                     
+                     <div class="selector-container" id="conduitSelectorContainer">
+                         <!-- Default conduits will be populated here -->
+                     </div>
+                 </div>
+                
+                <p>
+                    <strong data-lang="recommendation">建議：</strong>
+                    <span data-lang="recommendation-text">考慮到施工容差和未來擴充需求，建議選用</span>
+                    <span id="recommendedSize" class="highlight"></span>
+                    <span data-lang="conduit-text">的conduit。</span>
+                </p>
+            </div>
+            
+            <!-- Visualization -->
+            <div class="section visualization" id="visualSection" style="display: none;">
+                <h2 data-lang="visualization">🎯 視覺化展示</h2>
+
+                <!-- Important Notice -->
+                <div style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); border: 2px solid #ffc107; border-radius: 10px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                    <h3 style="color: #856404; margin: 0 0 10px 0; font-size: 16px;">
+                        ⚠️ <span data-lang="important-notice">重要提示</span>
+                    </h3>
+                    <p style="color: #856404; margin: 0; font-size: 14px; line-height: 1.5;">
+                        <span data-lang="cable-end-notice">必需要考慮線頭的粗度，新增一條線代表線頭</span>
+                    </p>
+                </div>
+
+                <div class="visual-container">
+                    <!-- With Cable Head Visualization -->
+                    <div class="visualization-section">
+                        <h3 style="text-align: center; margin-bottom: 15px; color: #2c3e50;">
+                            <span data-lang="with-cable-head">包含線頭的視覺化</span>
+                        </h3>
+                        <div class="conduit-visual">
+                            <div class="conduit-circle" id="conduitCircleWithHead">
+                                <div id="cablesContainerWithHead"></div>
+                            </div>
+                            <p style="text-align: center; margin-top: 15px;">
+                                <strong>
+                                    <span data-lang="conduit-diameter">Conduit 內徑:</span>
+                                    <span id="conduitDiameterWithHead"></span>
+                                </strong>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Without Cable Head Visualization -->
+                    <div class="visualization-section">
+                        <h3 style="text-align: center; margin-bottom: 15px; color: #2c3e50;">
+                            <span data-lang="without-cable-head">不包含線頭的視覺化</span>
+                        </h3>
+                        <div class="conduit-visual">
+                            <div class="conduit-circle" id="conduitCircleWithoutHead">
+                                <div id="cablesContainerWithoutHead"></div>
+                            </div>
+                            <p style="text-align: center; margin-top: 15px;">
+                                <strong>
+                                    <span data-lang="conduit-diameter">Conduit 內徑:</span>
+                                    <span id="conduitDiameterWithoutHead"></span>
+                                </strong>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="legend">
+                        <h3 data-lang="cable-legend">線纜圖例</h3>
+                        <div id="legendContainer">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer with credits -->
+        <div style="text-align: center; margin-top: 40px; padding: 20px; color: #666; font-size: 12px; border-top: 1px solid #e0e0e0;">
+            <p><strong><span data-lang="author">作者:</span> Samuel</strong></p>
+            <p><strong>Powered by: Cursor (Vibe Coding)</strong></p>
+        </div>
+    </div>
+
+    <script>
+        // Multi-language support
+        const translations = {
+            zh: {
+                'title': '🔌 Conduit & Cable Visualizer',
+                'subtitle': '動態管理線纜並計算所需的conduit內徑',
+                'lang-zh': '中文',
+                'lang-en': 'English',
+                'cable-management-title': '📝 線纜管理',
+                'add-cable': '添加新線纜',
+                'cable-source-placeholder': '線纜來源 (例如: Camera LAN)',
+                'quantity-placeholder': '數量',
+                'diameter-placeholder': '直徑 (mm)',
+                'other': '其他',
+                'cable-head': '線頭',
+                'custom': '自定義',
+                'custom-type-placeholder': '輸入自定義類型',
+                'add': '➕ 添加',
+                'cable-source': '線纜來源',
+                'cable-type': '類型',
+                'cable-quantity': '數量',
+                'cable-dimensions': '線纜尺寸',
+                'custom-diameter': '自定義',
+                'actions': '操作',
+                'no-cables': '還沒有添加任何線纜，請先添加線纜信息',
+                'load-sample': '📄 載入示例數據',
+                'clear-all': '🗑️ 清空所有',
+                'export': '💾 導出數據',
+                'import': '📁 導入數據',
+                'cable-specs': '📋 線纜規格表',
+                'single-area': '單條截面積 (mm²)',
+                'total-area': '總截面積 (mm²)',
+                'calculation-process': '🧮 計算過程',
+                'step1': '步驟1: 計算各類線纜的總截面積',
+                'formula1': '線纜截面積 = π × (直徑/2)² × 數量',
+                'step2': '步驟2: 計算線纜總截面積',
+                'step3': '步驟3: 計算所需conduit內徑',
+                'fill-ratio-text': '根據工程標準，線纜填充率不應超過conduit截面積的',
+                'formula2': 'Conduit所需截面積 = 線纜總截面積 ÷ 0.4\nConduit內徑 = √(Conduit所需截面積 ÷ π) × 2',
+                'calculation-results': '✅ 計算結果',
+                'select-conduit': '🔧 選擇可用的Conduit規格',
+                'recommendation': '建議：',
+                'recommendation-text': '考慮到施工容差和未來擴充需求，建議選用',
+                'conduit-text': '的conduit。',
+                'visualization': '🎯 視覺化展示',
+                'conduit-diameter': 'Conduit 內徑:',
+                'cable-legend': '線纜圖例',
+                'edit': '編輯',
+                'delete': '刪除',
+                'save': '保存',
+                'cancel': '取消',
+                'edit-cable-source': '編輯線纜來源',
+                'edit-quantity': '編輯數量',
+                'edit-diameter': '編輯直徑 (mm)',
+                'total': '總計',
+                'total-cable-area': '總線纜截面積 = ',
+                'required-conduit-area': '所需conduit截面積:',
+                'required-conduit-diameter': '所需conduit內徑:',
+                'minimum-required': '最小所需conduit內徑: ',
+                'suitable': '✅ 可行 (填充率: ',
+                'tight': '⚠️ 緊湊 (填充率: ',
+                                 'too-small': '❌ 太小 (需要 ',
+                 'all-too-small': '⚠️ 所有可用選項都太小！',
+                 'actual-fill-ratio': '實際填充率: ',
+                 'add-custom-conduit': '➕ 添加自定義Conduit規格',
+                 'custom-diameter-placeholder': '內徑 (mm)',
+                 'custom-name-placeholder': '規格名稱 (例如: PMA XYZ-50)',
+                 'add-conduit': '添加',
+                 'overfill-warning': '⚠️ 超填充 (填充率: ',
+                 'delete-conduit': '刪除',
+                 'try-anyway': ' - 可嘗試使用',
+                 'disclaimer-title': '⚠️ 免責聲明 / Disclaimer: Only for reference',
+                 'disclaimer-text': '此計算器僅供參考',
+                 'author': '作者:',
+                 'important-notice': '重要提示',
+                 'cable-end-notice': '必需要考慮線頭的粗度，新增一條線代表線頭',
+                 'with-cable-head': '包含線頭的視覺化',
+                 'without-cable-head': '不包含線頭的視覺化',
+                 'round-shape': '圓形',
+                 'rectangle-shape': '矩形',
+                 'width-placeholder': '寬度 (mm)',
+                 'height-placeholder': '高度 (mm)'
+            },
+            en: {
+                'title': '🔌 Conduit & Cable Visualizer',
+                'subtitle': 'Dynamically manage cables and calculate required conduit inner diameter',
+                'lang-zh': '中文',
+                'lang-en': 'English',
+                'cable-management-title': '📝 Cable Management',
+                'add-cable': 'Add New Cable',
+                'cable-source-placeholder': 'Cable Source (e.g. Camera LAN)',
+                'quantity-placeholder': 'Quantity',
+                'diameter-placeholder': 'Diameter (mm)',
+                'other': 'Other',
+                'cable-head': 'Cable Head',
+                'custom': 'Custom',
+                'custom-type-placeholder': 'Enter custom type',
+                'add': '➕ Add',
+                'cable-source': 'Cable Source',
+                'cable-type': 'Type',
+                'cable-quantity': 'Quantity',
+                'cable-dimensions': 'Cable Dimensions',
+                'custom-diameter': 'Custom',
+                'actions': 'Actions',
+                'no-cables': 'No cables added yet, please add cable information first',
+                'load-sample': '📄 Load Sample Data',
+                'clear-all': '🗑️ Clear All',
+                'export': '💾 Export Data',
+                'import': '📁 Import Data',
+                'cable-specs': '📋 Cable Specifications',
+                'single-area': 'Single Cross-section (mm²)',
+                'total-area': 'Total Cross-section (mm²)',
+                'calculation-process': '🧮 Calculation Process',
+                'step1': 'Step 1: Calculate total cross-sectional area for each cable type',
+                'formula1': 'Cable cross-section = π × (diameter/2)² × quantity',
+                'step2': 'Step 2: Calculate total cable cross-sectional area',
+                'step3': 'Step 3: Calculate required conduit inner diameter',
+                'fill-ratio-text': 'According to engineering standards, cable fill ratio should not exceed',
+                'formula2': 'Required conduit cross-section = Total cable area ÷ 0.4\nConduit inner diameter = √(Required conduit area ÷ π) × 2',
+                'calculation-results': '✅ Calculation Results',
+                'select-conduit': '🔧 Select Available Conduit Specification',
+                'recommendation': 'Recommendation:',
+                'recommendation-text': 'Considering construction tolerance and future expansion requirements, it is recommended to use',
+                'conduit-text': '.',
+                'visualization': '🎯 Visualization',
+                'conduit-diameter': 'Conduit Inner Diameter:',
+                'cable-legend': 'Cable Legend',
+                'edit': 'Edit',
+                'delete': 'Delete',
+                'save': 'Save',
+                'cancel': 'Cancel',
+                'edit-cable-source': 'Edit cable source',
+                'edit-quantity': 'Edit quantity',
+                'edit-diameter': 'Edit diameter (mm)',
+                'total': 'Total',
+                'total-cable-area': 'Total cable cross-sectional area = ',
+                'required-conduit-area': 'Required conduit cross-section:',
+                'required-conduit-diameter': 'Required conduit inner diameter:',
+                'minimum-required': 'Minimum required conduit inner diameter: ',
+                'suitable': '✅ Suitable (Fill ratio: ',
+                'tight': '⚠️ Tight (Fill ratio: ',
+                                 'too-small': '❌ Too small (Need ',
+                 'all-too-small': '⚠️ All available options are too small!',
+                 'actual-fill-ratio': 'Actual fill ratio: ',
+                 'add-custom-conduit': '➕ Add Custom Conduit Specification',
+                 'custom-diameter-placeholder': 'Inner Diameter (mm)',
+                 'custom-name-placeholder': 'Specification Name (e.g. PMA XYZ-50)',
+                 'add-conduit': 'Add',
+                 'overfill-warning': '⚠️ Overfilled (Fill ratio: ',
+                 'delete-conduit': 'Delete',
+                 'try-anyway': ' - Can try to use',
+                 'disclaimer-title': '⚠️ Disclaimer: Only for reference',
+                 'disclaimer-text': 'This calculator is for reference only.',
+                 'author': 'Credit:',
+                 'important-notice': 'Important Notice',
+                 'cable-end-notice': 'Cable end thickness must be considered. Add an extra cable to represent the cable end.',
+                 'with-cable-head': 'Visualization with Cable Head',
+                 'without-cable-head': 'Visualization without Cable Head',
+                 'round-shape': 'Round',
+                 'rectangle-shape': 'Rectangle',
+                 'width-placeholder': 'Width (mm)',
+                 'height-placeholder': 'Height (mm)'
+            }
+        };
+        
+                 let currentLang = 'en';
+         let cables = [];
+         let cableColors = ['#e74c3c', '#3498db', '#f39c12', '#27ae60', '#9b59b6', '#e67e22', '#1abc9c', '#34495e', '#f1c40f', '#e91e63'];
+         let colorIndex = 0;
+         let editingCableId = null; // Track which cable is being edited
+         let availableConduits = [
+             { diameter: 36.6, name: '36.6mm (PMA XPCSG-36BG NW36)', id: 'conduit1', statusId: 'status1', isCustom: false },
+             { diameter: 46.6, name: '46.6mm (PMA VAMG-48B NW48)', id: 'conduit2', statusId: 'status2', isCustom: false },
+             { diameter: 47.5, name: '47.5mm (PMA XPCSG-48BG NW48)', id: 'conduit3', statusId: 'status3', isCustom: false }
+         ];
+         let conduitIdCounter = 4;
+        
+        // Language switching
+        function switchLanguage(lang) {
+            currentLang = lang;
+            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            updateLanguage();
+        }
+        
+        function updateLanguage() {
+            document.querySelectorAll('[data-lang]').forEach(element => {
+                const key = element.getAttribute('data-lang');
+                if (translations[currentLang][key]) {
+                    element.textContent = translations[currentLang][key];
+                }
+            });
+
+            document.querySelectorAll('[data-lang-placeholder]').forEach(element => {
+                const key = element.getAttribute('data-lang-placeholder');
+                if (translations[currentLang][key]) {
+                    element.placeholder = translations[currentLang][key];
+                }
+            });
+
+            // Update formula text
+            const formula2Element = document.querySelector('[data-lang="formula2"]');
+            if (formula2Element) {
+                formula2Element.innerHTML = translations[currentLang]['formula2'].replace('\n', '<br>');
+            }
+        }
+
+        // Toggle custom cable type input
+        function toggleCustomType() {
+            const cableTypeSelect = document.getElementById('cableType');
+            const customInput = document.getElementById('customCableType');
+            const shapeSelection = document.getElementById('shapeSelection');
+
+            if (cableTypeSelect.value === 'Custom') {
+                customInput.style.display = 'block';
+                customInput.focus();
+                shapeSelection.style.display = 'none';
+            } else if (cableTypeSelect.value === 'Cable Head') {
+                customInput.style.display = 'none';
+                customInput.value = '';
+                shapeSelection.style.display = 'block';
+                toggleShapeInputs(); // Show appropriate shape inputs
+            } else {
+                customInput.style.display = 'none';
+                customInput.value = '';
+                shapeSelection.style.display = 'none';
+            }
+        }
+
+        // Toggle shape input fields
+        function toggleShapeInputs() {
+            const shapeSelect = document.getElementById('cableShape');
+            const roundInputs = document.getElementById('roundInputs');
+            const rectangleInputs = document.getElementById('rectangleInputs');
+
+            if (shapeSelect.value === 'rectangle') {
+                roundInputs.style.display = 'none';
+                rectangleInputs.style.display = 'block';
+            } else {
+                roundInputs.style.display = 'block';
+                rectangleInputs.style.display = 'none';
+            }
+        }
+        
+                 // Conduit management functions
+         function addCustomConduit() {
+             const diameter = parseFloat(document.getElementById('customDiameter').value);
+             const name = document.getElementById('customName').value.trim();
+             
+             if (!diameter || !name || diameter < 10 || diameter > 200) {
+                 alert(currentLang === 'zh' ? '請填寫有效的conduit規格 (直徑: 10-200mm)' : 'Please enter valid conduit specification (diameter: 10-200mm)');
+                 return;
+             }
+             
+             // Check if diameter already exists
+             if (availableConduits.some(c => Math.abs(c.diameter - diameter) < 0.1)) {
+                 alert(currentLang === 'zh' ? '此直徑的conduit已存在' : 'Conduit with this diameter already exists');
+                 return;
+             }
+             
+             const newConduit = {
+                 diameter: diameter,
+                 name: `${diameter}mm (${name})`,
+                 id: `conduit${conduitIdCounter}`,
+                 statusId: `status${conduitIdCounter}`,
+                 isCustom: true
+             };
+             
+             availableConduits.push(newConduit);
+             conduitIdCounter++;
+             
+             // Clear form
+             document.getElementById('customDiameter').value = '';
+             document.getElementById('customName').value = '';
+             
+             updateConduitSelector();
+             updateCalculations();
+         }
+         
+         function deleteCustomConduit(conduitId) {
+             if (confirm(currentLang === 'zh' ? '確定要刪除此conduit規格嗎？' : 'Are you sure you want to delete this conduit specification?')) {
+                 availableConduits = availableConduits.filter(c => c.id !== conduitId);
+                 updateConduitSelector();
+                 updateCalculations();
+             }
+         }
+         
+         function updateConduitSelector() {
+             const container = document.getElementById('conduitSelectorContainer');
+             
+             // Sort conduits by diameter
+             const sortedConduits = [...availableConduits].sort((a, b) => a.diameter - b.diameter);
+             
+             container.innerHTML = sortedConduits.map(conduit => `
+                 <div class="selector-group conduit-option">
+                     <input type="radio" id="${conduit.id}" name="conduit" value="${conduit.diameter}" onchange="updateVisualization()">
+                     <label for="${conduit.id}">
+                         <div class="option-header">${conduit.name}</div>
+                         <div class="option-status" id="${conduit.statusId}"></div>
+                     </label>
+                     ${conduit.isCustom ? `
+                         <button class="delete-conduit" onclick="deleteCustomConduit('${conduit.id}')" title="${translations[currentLang]['delete-conduit'] || '刪除'}">
+                             ×
+                         </button>
+                     ` : ''}
+                 </div>
+             `).join('');
+             
+             updateLanguage();
+         }
+
+         // Cable management functions
+         function addCable() {
+            const source = document.getElementById('cableSource').value.trim();
+            let type = document.getElementById('cableType').value;
+
+            // Handle custom cable type
+            if (type === 'Custom') {
+                const customType = document.getElementById('customCableType').value.trim();
+                if (!customType) {
+                    alert(currentLang === 'zh' ? '請輸入自定義類型' : 'Please enter custom type');
+                    return;
+                }
+                type = customType;
+            }
+
+            const quantity = parseInt(document.getElementById('cableQuantity').value);
+
+            // Handle different shapes for Cable Head
+            let diameter, width, height, shape = 'round';
+            if (type === 'Cable Head') {
+                shape = document.getElementById('cableShape').value;
+                if (shape === 'rectangle') {
+                    width = parseFloat(document.getElementById('cableWidth').value);
+                    height = parseFloat(document.getElementById('cableHeight').value);
+                    if (!width || !height || width < 0.1 || height < 0.1) {
+                        alert(currentLang === 'zh' ? '請填寫完整的矩形尺寸信息' : 'Please fill in complete rectangle dimensions');
+                        return;
+                    }
+                    // For rectangle, we'll use equivalent diameter for visualization
+                    diameter = Math.sqrt(width * height / Math.PI) * 2; // Equivalent diameter
+                } else {
+                    diameter = parseFloat(document.getElementById('cableDiameter').value);
+                    if (!diameter || diameter < 0.1) {
+                        alert(currentLang === 'zh' ? '請填寫完整的圓形直徑信息' : 'Please fill in complete round diameter information');
+                        return;
+                    }
+                }
+            } else {
+                diameter = parseFloat(document.getElementById('cableDiameter').value);
+                if (!source || !quantity || !diameter || quantity < 1 || diameter < 0.1) {
+                    alert(currentLang === 'zh' ? '請填寫完整的線纜信息' : 'Please fill in complete cable information');
+                    return;
+                }
+            }
+            
+            const cable = {
+                id: Date.now(),
+                source: source,
+                type: type,
+                quantity: quantity,
+                diameter: diameter,
+                shape: shape,
+                width: width,
+                height: height,
+                color: cableColors[colorIndex % cableColors.length]
+            };
+            
+            cables.push(cable);
+            colorIndex++;
+            
+            // Clear form
+            document.getElementById('cableSource').value = '';
+            document.getElementById('cableQuantity').value = '1';
+            document.getElementById('cableDiameter').value = '';
+            document.getElementById('cableDiameterSelect').value = 'custom';
+            document.getElementById('cableWidth').value = '';
+            document.getElementById('cableHeight').value = '';
+            document.getElementById('cableShape').value = 'round';
+            document.getElementById('cableType').value = 'LAN'; // Reset to default
+            document.getElementById('customCableType').value = '';
+            toggleCustomType(); // Hide custom input
+            
+            updateCableList();
+            updateCalculations();
+        }
+        
+        function deleteCable(id) {
+            cables = cables.filter(cable => cable.id !== id);
+            updateCableList();
+            updateCalculations();
+        }
+        
+        function editCable(id) {
+            const cable = cables.find(c => c.id === id);
+            if (!cable) return;
+
+            // Ensure cable has shape property
+            if (!cable.shape) {
+                cable.shape = cable.type === 'Cable Head' ? 'round' : 'round';
+            }
+            if (cable.width === undefined) cable.width = null;
+            if (cable.height === undefined) cable.height = null;
+
+            editingCableId = id;
+            updateCableList();
+            // Ensure the shape selection is set correctly when entering edit mode
+            setTimeout(() => {
+                toggleEditShapeSelection(id);
+            }, 10);
+        }
+
+        function toggleEditShapeSelection(cableId) {
+            const typeSelect = document.getElementById(`edit-type-${cableId}`);
+            const shapeSelection = document.getElementById(`edit-shape-selection-${cableId}`);
+            const roundInputs = document.getElementById(`edit-round-inputs-${cableId}`);
+            const rectangleInputs = document.getElementById(`edit-rectangle-inputs-${cableId}`);
+
+            if (typeSelect.value === 'Cable Head') {
+                shapeSelection.style.display = 'block';
+                toggleEditShapeInputs(cableId);
+            } else {
+                shapeSelection.style.display = 'none';
+                roundInputs.style.display = 'block';
+                rectangleInputs.style.display = 'none';
+            }
+        }
+
+        function toggleEditShapeInputs(cableId) {
+            const shapeSelect = document.getElementById(`edit-shape-${cableId}`);
+            const roundInputs = document.getElementById(`edit-round-inputs-${cableId}`);
+            const rectangleInputs = document.getElementById(`edit-rectangle-inputs-${cableId}`);
+
+            if (shapeSelect && shapeSelect.value === 'rectangle') {
+                roundInputs.style.display = 'none';
+                rectangleInputs.style.display = 'block';
+            } else {
+                roundInputs.style.display = 'block';
+                rectangleInputs.style.display = 'none';
+            }
+        }
+
+
+        function saveCableEdit(id) {
+            const cable = cables.find(c => c.id === id);
+            if (!cable) return;
+
+            const newSource = document.getElementById(`edit-source-${id}`).value.trim();
+            const newType = document.getElementById(`edit-type-${id}`).value;
+            const newQuantity = parseInt(document.getElementById(`edit-quantity-${id}`).value);
+
+            // Handle different shapes for Cable Head
+            let newDiameter, newWidth, newHeight, newShape = 'round';
+            if (newType === 'Cable Head') {
+                newShape = document.getElementById(`edit-shape-${id}`).value;
+                if (newShape === 'rectangle') {
+                    newWidth = parseFloat(document.getElementById(`edit-width-${id}`).value);
+                    newHeight = parseFloat(document.getElementById(`edit-height-${id}`).value);
+                    if (!newWidth || !newHeight || newWidth < 0.1 || newHeight < 0.1) {
+                        alert(currentLang === 'zh' ? '請填寫完整的矩形尺寸信息' : 'Please fill in complete rectangle dimensions');
+                        return;
+                    }
+                    newDiameter = Math.sqrt(newWidth * newHeight / Math.PI) * 2;
+                } else {
+                    newDiameter = parseFloat(document.getElementById(`edit-diameter-${id}`).value);
+                    if (!newDiameter || newDiameter < 0.1) {
+                        alert(currentLang === 'zh' ? '請填寫完整的圓形直徑信息' : 'Please fill in complete round diameter information');
+                        return;
+                    }
+                }
+            } else {
+                newDiameter = parseFloat(document.getElementById(`edit-diameter-${id}`).value);
+                if (!newSource || !newQuantity || !newDiameter || newQuantity < 1 || newDiameter < 0.1) {
+                    alert(currentLang === 'zh' ? '請填寫完整的線纜信息' : 'Please fill in complete cable information');
+                    return;
+                }
+            }
+
+            cable.source = newSource;
+            cable.type = newType;
+            cable.quantity = newQuantity;
+            cable.diameter = newDiameter;
+            cable.shape = newShape;
+            cable.width = newWidth;
+            cable.height = newHeight;
+
+            editingCableId = null;
+            updateCableList();
+            updateCalculations();
+        }
+
+        function cancelCableEdit() {
+            editingCableId = null;
+            updateCableList();
+        }
+
+        // Diameter dropdown synchronization functions
+        function updateDiameterInput(cableId) {
+            const select = document.getElementById(`edit-diameter-select-${cableId}`);
+            const input = document.getElementById(`edit-diameter-${cableId}`);
+
+            if (select.value === 'custom') {
+                input.focus();
+            } else {
+                input.value = select.value;
+            }
+        }
+
+        function updateDiameterSelect(cableId) {
+            const select = document.getElementById(`edit-diameter-select-${cableId}`);
+            const input = document.getElementById(`edit-diameter-${cableId}`);
+            const inputValue = parseFloat(input.value);
+
+            // Check if input value matches any predefined option
+            const predefinedValues = [3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 25, 30, 40, 50];
+            const matchingValue = predefinedValues.find(val => val === inputValue);
+
+            if (matchingValue) {
+                select.value = matchingValue.toString();
+            } else {
+                select.value = 'custom';
+            }
+        }
+
+        function updateMainDiameterInput() {
+            const select = document.getElementById('cableDiameterSelect');
+            const input = document.getElementById('cableDiameter');
+
+            if (select.value === 'custom') {
+                input.focus();
+            } else {
+                input.value = select.value;
+            }
+        }
+
+        function updateMainDiameterSelect() {
+            const select = document.getElementById('cableDiameterSelect');
+            const input = document.getElementById('cableDiameter');
+            const inputValue = parseFloat(input.value);
+
+            // Check if input value matches any predefined option
+            const predefinedValues = [3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 25, 30, 40, 50];
+            const matchingValue = predefinedValues.find(val => val === inputValue);
+
+            if (matchingValue) {
+                select.value = matchingValue.toString();
+            } else {
+                select.value = 'custom';
+            }
+        }
+
+        // Helper function to determine diameter dropdown selection
+        function getDiameterSelection(diameter) {
+            if (!diameter) return 'custom';
+            const predefinedValues = [3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 25, 30, 40, 50];
+            const matchingValue = predefinedValues.find(val => val === Math.round(diameter));
+            return matchingValue ? matchingValue.toString() : 'custom';
+        }
+        
+                 function updateCableList() {
+             const container = document.getElementById('cableListContent');
+             
+             if (cables.length === 0) {
+                 container.innerHTML = `
+                     <div class="empty-state">
+                         <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">📋</div>
+                         <p data-lang="no-cables">${translations[currentLang]['no-cables']}</p>
+                     </div>
+                 `;
+                 return;
+             }
+             
+            container.innerHTML = cables.map(cable => {
+                if (cable.id === editingCableId) {
+                    // Edit mode
+                    return `
+                        <div class="cable-item editing">
+                            <span>
+                                <span class="cable-color" style="background-color: ${cable.color}"></span>
+                                <input type="text" id="edit-source-${cable.id}" value="${cable.source}" style="width: 120px; padding: 5px;">
+                            </span>
+                            <span>
+                                <select id="edit-type-${cable.id}" onchange="toggleEditShapeSelection(${cable.id})">
+                                    <option value="LAN">LAN</option>
+                                    <option value="PWR">PWR</option>
+                                    <option value="RS232">RS232</option>
+                                    <option value="Fiber">Fiber</option>
+                                    <option value="Coax">Coax</option>
+                                    <option value="Cable Head" ${cable.type === 'Cable Head' ? 'selected' : ''}>線頭</option>
+                                    <option value="Custom">自定義</option>
+                                </select>
+                            </span>
+                            <span>
+                                <input type="number" id="edit-quantity-${cable.id}" value="${cable.quantity}" min="1" style="width: 60px; padding: 5px;">
+                            </span>
+                            <span>
+                                <div id="edit-shape-selection-${cable.id}" style="display: ${cable.type === 'Cable Head' ? 'block' : 'none'};">
+                                    <select id="edit-shape-${cable.id}" onchange="toggleEditShapeInputs(${cable.id})">
+                                        <option value="round" ${cable.shape === 'round' ? 'selected' : ''}>圓形</option>
+                                        <option value="rectangle" ${cable.shape === 'rectangle' ? 'selected' : ''}>矩形</option>
+                                    </select>
+                                </div>
+                                <div id="edit-round-inputs-${cable.id}" style="${cable.type !== 'Cable Head' || (cable.type === 'Cable Head' && cable.shape === 'round') ? 'display: block;' : 'display: none;'}">
+                                    <select id="edit-diameter-select-${cable.id}" onchange="updateDiameterInput(${cable.id})" style="width: 90px; padding: 5px; margin-right: 5px;">
+                                        <option value="custom" ${getDiameterSelection(cable.diameter) === 'custom' ? 'selected' : ''} data-lang="custom-diameter">自定義</option>
+                                        <option value="3" ${getDiameterSelection(cable.diameter) === '3' ? 'selected' : ''}>3mm</option>
+                                        <option value="4" ${getDiameterSelection(cable.diameter) === '4' ? 'selected' : ''}>4mm</option>
+                                        <option value="5" ${getDiameterSelection(cable.diameter) === '5' ? 'selected' : ''}>5mm</option>
+                                        <option value="6" ${getDiameterSelection(cable.diameter) === '6' ? 'selected' : ''}>6mm</option>
+                                        <option value="7" ${getDiameterSelection(cable.diameter) === '7' ? 'selected' : ''}>7mm</option>
+                                        <option value="8" ${getDiameterSelection(cable.diameter) === '8' ? 'selected' : ''}>8mm</option>
+                                        <option value="9" ${getDiameterSelection(cable.diameter) === '9' ? 'selected' : ''}>9mm</option>
+                                        <option value="10" ${getDiameterSelection(cable.diameter) === '10' ? 'selected' : ''}>10mm</option>
+                                        <option value="12" ${getDiameterSelection(cable.diameter) === '12' ? 'selected' : ''}>12mm</option>
+                                        <option value="15" ${getDiameterSelection(cable.diameter) === '15' ? 'selected' : ''}>15mm</option>
+                                        <option value="20" ${getDiameterSelection(cable.diameter) === '20' ? 'selected' : ''}>20mm</option>
+                                        <option value="25" ${getDiameterSelection(cable.diameter) === '25' ? 'selected' : ''}>25mm</option>
+                                        <option value="30" ${getDiameterSelection(cable.diameter) === '30' ? 'selected' : ''}>30mm</option>
+                                        <option value="40" ${getDiameterSelection(cable.diameter) === '40' ? 'selected' : ''}>40mm</option>
+                                        <option value="50" ${getDiameterSelection(cable.diameter) === '50' ? 'selected' : ''}>50mm</option>
+                                    </select>
+                                    <input type="number" id="edit-diameter-${cable.id}" value="${cable.diameter}" step="0.1" min="0.1" style="width: 60px; padding: 5px;" onchange="updateDiameterSelect(${cable.id})">
+                                </div>
+                                <div id="edit-rectangle-inputs-${cable.id}" style="${cable.type === 'Cable Head' && cable.shape === 'rectangle' ? 'display: block;' : 'display: none;'}">
+                                    <input type="number" id="edit-width-${cable.id}" value="${cable.width || ''}" step="0.1" min="0.1" style="width: 50px; padding: 5px;"> ×
+                                    <input type="number" id="edit-height-${cable.id}" value="${cable.height || ''}" step="0.1" min="0.1" style="width: 50px; padding: 5px;"> mm
+                                </div>
+                            </span>
+                            <span>
+                                <button class="btn btn-success" onclick="saveCableEdit(${cable.id})" style="padding: 5px 10px; margin-right: 5px;">
+                                    ${translations[currentLang]['save'] || '保存'}
+                                </button>
+                                <button class="btn btn-danger" onclick="cancelCableEdit()" style="padding: 5px 10px;">
+                                    ${translations[currentLang]['cancel'] || '取消'}
+                                </button>
+                            </span>
+                        </div>
+                    `;
+                } else {
+                    // Normal mode
+                    let dimensionText = '';
+                    if (cable.shape === 'rectangle') {
+                        dimensionText = `${cable.width}×${cable.height} mm`;
+                    } else {
+                        dimensionText = `${cable.diameter} mm`;
+                    }
+
+                    return `
+                        <div class="cable-item">
+                            <span>
+                                <span class="cable-color" style="background-color: ${cable.color}"></span>
+                                ${cable.source}
+                            </span>
+                            <span>${cable.type}</span>
+                            <span>${cable.quantity}</span>
+                            <span>${dimensionText}</span>
+                            <span>
+                                <button class="btn btn-primary" onclick="editCable(${cable.id})" style="padding: 5px 10px; margin-right: 5px;">
+                                    ${translations[currentLang]['edit'] || '編輯'}
+                                </button>
+                                <button class="btn btn-danger" onclick="deleteCable(${cable.id})" style="padding: 5px 10px;">
+                                    ${translations[currentLang]['delete'] || '刪除'}
+                                </button>
+                            </span>
+                        </div>
+                    `;
+                }
+            }).join('');
+             
+             // Force update language after DOM changes
+             updateLanguage();
+         }
+        
+        function loadSampleData() {
+            cables = [
+                { id: 1, source: 'Camera LAN', type: 'LAN', quantity: 6, diameter: 6.3, shape: 'round', width: null, height: null, color: '#e74c3c' },
+                { id: 2, source: 'Camera PWR', type: 'PWR', quantity: 6, diameter: 4.5, shape: 'round', width: null, height: null, color: '#3498db' },
+                { id: 3, source: 'Light PWR', type: 'PWR', quantity: 3, diameter: 10.3, shape: 'round', width: null, height: null, color: '#f39c12' },
+                { id: 4, source: 'Speed Sensor', type: 'RS232', quantity: 1, diameter: 10, shape: 'round', width: null, height: null, color: '#27ae60' },
+                { id: 5, source: 'Cable Head', type: 'Cable Head', quantity: 1, diameter: 20, shape: 'round', width: null, height: null, color: '#9b59b6' }
+            ];
+            colorIndex = 5;
+            updateCableList();
+            updateCalculations();
+        }
+        
+        function clearAllCables() {
+            if (confirm(currentLang === 'zh' ? '確定要清空所有線纜數據嗎？' : 'Are you sure you want to clear all cable data?')) {
+                cables = [];
+                colorIndex = 0;
+                updateCableList();
+                updateCalculations();
+            }
+        }
+        
+        function exportData() {
+            const data = {
+                cables: cables,
+                timestamp: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `cable-data-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.cables && Array.isArray(data.cables)) {
+                        cables = data.cables.map((cable, index) => ({
+                            ...cable,
+                            id: Date.now() + index // Ensure unique IDs
+                        }));
+                        colorIndex = cables.length;
+                        updateCableList();
+                        updateCalculations();
+                        alert(currentLang === 'zh' ? '數據導入成功！' : 'Data imported successfully!');
+                    } else {
+                        throw new Error('Invalid data format');
+                    }
+                } catch (error) {
+                    alert(currentLang === 'zh' ? '導入失敗，請檢查文件格式' : 'Import failed, please check file format');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; // Reset file input
+        }
+        
+        // Calculation functions
+        function calculateCableArea(cable) {
+            if (cable.shape === 'rectangle') {
+                return cable.width * cable.height;
+            } else {
+                return Math.PI * Math.pow(cable.diameter / 2, 2);
+            }
+        }
+        
+        function calculateConduitDiameter(totalCableArea, fillRatio = 0.4) {
+            const requiredConduitArea = totalCableArea / fillRatio;
+            return 2 * Math.sqrt(requiredConduitArea / Math.PI);
+        }
+        
+        function updateCalculations() {
+            if (cables.length === 0) {
+                document.getElementById('specSection').style.display = 'none';
+                document.getElementById('calculationSection').style.display = 'none';
+                document.getElementById('resultSection').style.display = 'none';
+                document.getElementById('visualSection').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('specSection').style.display = 'block';
+            document.getElementById('calculationSection').style.display = 'block';
+            document.getElementById('resultSection').style.display = 'block';
+            document.getElementById('visualSection').style.display = 'block';
+            
+            generateTable();
+            generateCalculationDetails();
+            calculateAndDisplayConduit();
+            updateLegend();
+        }
+        
+                 function generateTable() {
+             const tableBody = document.getElementById('cableTable');
+             let totalArea = 0;
+             
+             let rows = '';
+            cables.forEach(cable => {
+                const singleArea = calculateCableArea(cable);
+                const totalCableArea = singleArea * cable.quantity;
+                totalArea += totalCableArea;
+
+                // Display dimensions based on shape
+                let dimensionText = '';
+                if (cable.shape === 'rectangle') {
+                    dimensionText = `${cable.width}×${cable.height} mm`;
+                } else {
+                    dimensionText = `${cable.diameter} mm`;
+                }
+
+                rows += `
+                    <tr>
+                        <td>
+                            <span class="cable-color" style="background-color: ${cable.color}"></span>
+                            <strong>${cable.source}</strong>
+                        </td>
+                        <td>${cable.type}</td>
+                        <td>${cable.quantity}</td>
+                        <td>${dimensionText}</td>
+                        <td>${singleArea.toFixed(2)}</td>
+                        <td><strong>${totalCableArea.toFixed(2)}</strong></td>
+                    </tr>
+                `;
+             });
+             
+            // Add total row
+            rows += `
+                <tr style="background: #2c3e50; color: white; font-weight: bold;">
+                    <td colspan="6">${translations[currentLang]['total']}</td>
+                    <td>${totalArea.toFixed(2)} mm²</td>
+                 </tr>
+             `;
+             
+             tableBody.innerHTML = rows;
+             window.totalCableArea = totalArea;
+             
+             // Force update language for table content
+             updateLanguage();
+         }
+        
+        function generateCalculationDetails() {
+            const detailsContainer = document.getElementById('calculationDetails');
+            let details = '';
+            
+            cables.forEach(cable => {
+                const singleArea = calculateCableArea(cable.diameter);
+                const totalCableArea = singleArea * cable.quantity;
+                
+                details += `
+                    <p><strong>${cable.source}:</strong> π × (${cable.diameter}/2)² × ${cable.quantity} = ${totalCableArea.toFixed(2)} mm²</p>
+                `;
+            });
+            
+            detailsContainer.innerHTML = details;
+            
+            document.getElementById('totalArea').innerHTML = `
+                <div class="formula">${translations[currentLang]['total-cable-area']}${window.totalCableArea.toFixed(2)} mm²</div>
+            `;
+        }
+        
+                 function calculateAndDisplayConduit() {
+             const totalArea = window.totalCableArea;
+             const requiredDiameter = calculateConduitDiameter(totalArea);
+             const requiredArea = totalArea / 0.4;
+             
+             document.getElementById('conduitCalculation').innerHTML = `
+                 <p><strong>${translations[currentLang]['required-conduit-area']}</strong> ${totalArea.toFixed(2)} ÷ 0.4 = ${requiredArea.toFixed(2)} mm²</p>
+                 <p><strong>${translations[currentLang]['required-conduit-diameter']}</strong> √(${requiredArea.toFixed(2)} ÷ π) × 2 = <span class="highlight">${requiredDiameter.toFixed(1)} mm</span></p>
+             `;
+             
+             // Store data for other functions
+             window.requiredDiameter = requiredDiameter;
+             window.availableConduits = availableConduits;
+             
+             document.getElementById('finalResult').innerHTML = `
+                 ${translations[currentLang]['minimum-required']}<strong>${requiredDiameter.toFixed(1)} mm</strong>
+             `;
+             
+             // Update conduit selector
+             updateConduitSelector();
+             
+             // Update status for each option (allow all to be selectable)
+             let recommendedOption = null;
+             let bestViableOption = null;
+             
+             availableConduits.forEach(conduit => {
+                 const statusElement = document.getElementById(conduit.statusId);
+                 const radioElement = document.getElementById(conduit.id);
+                 
+                 if (statusElement && radioElement) {
+                     // Never disable any conduit - let user try any size
+                     radioElement.disabled = false;
+                     
+                     const fillRatio = (totalArea / (Math.PI * (conduit.diameter / 2) ** 2) * 100);
+                     
+                     if (conduit.diameter >= requiredDiameter) {
+                         if (fillRatio <= 35) {
+                             statusElement.textContent = `${translations[currentLang]['suitable']}${fillRatio.toFixed(1)}%)`;
+                             statusElement.className = 'option-status status-ok';
+                             if (!recommendedOption) {
+                                 recommendedOption = conduit;
+                             }
+                         } else if (fillRatio <= 40) {
+                             statusElement.textContent = `${translations[currentLang]['tight']}${fillRatio.toFixed(1)}%)`;
+                             statusElement.className = 'option-status status-tight';
+                             if (!recommendedOption) {
+                                 recommendedOption = conduit;
+                             }
+                         } else {
+                             statusElement.textContent = `${translations[currentLang]['overfill-warning']}${fillRatio.toFixed(1)}%)${translations[currentLang]['try-anyway']}`;
+                             statusElement.className = 'option-status status-overfill';
+                             if (!bestViableOption) {
+                                 bestViableOption = conduit;
+                             }
+                         }
+                     } else {
+                         statusElement.textContent = `${translations[currentLang]['too-small']}${requiredDiameter.toFixed(1)}mm)${translations[currentLang]['try-anyway']}`;
+                         statusElement.className = 'option-status status-fail';
+                         // Still allow selection for user to see what happens
+                     }
+                 }
+             });
+             
+             // Auto-select the best option
+             const optionToSelect = recommendedOption || bestViableOption || availableConduits[0];
+             if (optionToSelect) {
+                 const radioElement = document.getElementById(optionToSelect.id);
+                 if (radioElement) {
+                     radioElement.checked = true;
+                     window.selectedConduit = optionToSelect;
+                 }
+                 document.getElementById('recommendedSize').textContent = optionToSelect.name;
+             }
+             
+            // Initialize visualization
+            if (window.selectedConduit) {
+                updateVisualization();
+            }
+         }
+        
+                 // Visualization functions
+        function circlesOverlap(x1, y1, r1, x2, y2, r2) {
+            const distance = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+            const minDistance = r1 + r2 + 0.5; // Minimal gap - allow cables to be very close
+            return distance < minDistance;
+        }
+
+        function rectanglesOverlap(x1, y1, w1, h1, x2, y2, w2, h2) {
+            // Check if two rectangles overlap
+            return !(x1 + w1/2 < x2 - w2/2 ||
+                     x2 + w2/2 < x1 - w1/2 ||
+                     y1 + h1/2 < y2 - h2/2 ||
+                     y2 + h2/2 < y1 - h1/2);
+        }
+         
+        function isInsideConduit(x, y, cableRadius, conduitRadius) {
+            const distanceFromCenter = Math.sqrt(x ** 2 + y ** 2);
+            return distanceFromCenter + cableRadius <= conduitRadius - 1; // Minimal boundary gap
+        }
+
+        function isInsideConduitRect(x, y, cableWidth, cableHeight, conduitRadius) {
+            // Check if rectangle is inside conduit by checking all four corners
+            const halfWidth = cableWidth / 2;
+            const halfHeight = cableHeight / 2;
+
+            const corners = [
+                {x: x - halfWidth, y: y - halfHeight}, // Top-left
+                {x: x + halfWidth, y: y - halfHeight}, // Top-right
+                {x: x - halfWidth, y: y + halfHeight}, // Bottom-left
+                {x: x + halfWidth, y: y + halfHeight}  // Bottom-right
+            ];
+
+            // Check if all corners are within the conduit
+            for (const corner of corners) {
+                const distanceFromCenter = Math.sqrt(corner.x ** 2 + corner.y ** 2);
+                if (distanceFromCenter >= conduitRadius - 1) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        
+        function updateVisualization() {
+            const selectedRadio = document.querySelector('input[name="conduit"]:checked');
+            if (selectedRadio) {
+                const selectedDiameter = parseFloat(selectedRadio.value);
+                const selectedConduit = window.availableConduits.find(c => c.diameter === selectedDiameter);
+                window.selectedConduit = selectedConduit;
+
+                // Clear existing cables for both visualizations
+                const cablesContainerWithHead = document.getElementById('cablesContainerWithHead');
+                const cablesContainerWithoutHead = document.getElementById('cablesContainerWithoutHead');
+                cablesContainerWithHead.innerHTML = '';
+                cablesContainerWithoutHead.innerHTML = '';
+
+                // Filter cables for without head visualization
+                const cablesWithoutHead = cables.filter(cable => cable.type !== 'Cable Head');
+                const totalAreaWithoutHead = cablesWithoutHead.reduce((sum, cable) => {
+                    return sum + (Math.PI * Math.pow(cable.diameter / 2, 2) * cable.quantity);
+                }, 0);
+
+                // Generate both visualizations
+                visualizeConduit(selectedDiameter, window.totalCableArea || 0, 'WithHead');
+                visualizeConduit(selectedDiameter, totalAreaWithoutHead, 'WithoutHead');
+            }
+        }
+        
+                 function visualizeConduit(conduitDiameter, totalArea, visualizationType = 'WithHead') {
+            const conduitRadius = conduitDiameter / 2;
+            const conduitCircle = document.getElementById(visualizationType === 'WithHead' ? 'conduitCircleWithHead' : 'conduitCircleWithoutHead');
+            const cablesContainer = document.getElementById(visualizationType === 'WithHead' ? 'cablesContainerWithHead' : 'cablesContainerWithoutHead');
+            const conduitDiameterElement = document.getElementById(visualizationType === 'WithHead' ? 'conduitDiameterWithHead' : 'conduitDiameterWithoutHead');
+             
+             // Clear existing cables first
+             cablesContainer.innerHTML = '';
+             
+             // Set conduit circle size (scaled for display)
+             const scale = 6;
+             const visualConduitRadius = conduitRadius * scale;
+             conduitCircle.style.width = visualConduitRadius * 2 + 'px';
+             conduitCircle.style.height = visualConduitRadius * 2 + 'px';
+             
+            // Create all cable objects
+            const allCables = [];
+            const cablesToUse = visualizationType === 'WithHead' ? cables : cables.filter(cable => cable.type !== 'Cable Head');
+            cablesToUse.forEach(cable => {
+                for (let i = 0; i < cable.quantity; i++) {
+                    allCables.push({
+                        diameter: cable.diameter,
+                        width: cable.width,
+                        height: cable.height,
+                        shape: cable.shape,
+                        color: cable.color,
+                        source: cable.source,
+                        type: cable.type
+                    });
+                }
+            });
+             
+             // Sort by size, place large cables first
+             allCables.sort((a, b) => {
+                const areaA = a.shape === 'rectangle' ? (a.width * a.height) : (Math.PI * Math.pow(a.diameter / 2, 2));
+                const areaB = b.shape === 'rectangle' ? (b.width * b.height) : (Math.PI * Math.pow(b.diameter / 2, 2));
+                return areaB - areaA;
+             });
+             
+             // Store placed cable positions
+             const placedCables = [];
+             let totalPlaced = 0;
+             
+             // Enhanced placement algorithm with more systematic approach
+             allCables.forEach((cable, index) => {
+                 // Calculate dimensions for collision detection
+                 let cableWidth, cableHeight, cableRadius;
+                 if (cable.shape === 'rectangle') {
+                     cableWidth = cable.width * scale;
+                     cableHeight = cable.height * scale;
+                     cableRadius = Math.sqrt(cableWidth * cableHeight) / 2; // Equivalent radius for collision
+                 } else {
+                     cableRadius = (cable.diameter / 2) * scale;
+                     cableWidth = cableRadius * 2;
+                     cableHeight = cableRadius * 2;
+                 }
+
+                 let placed = false;
+                 let attempts = 0;
+                 const maxAttempts = 2000; // Increased attempts
+                 
+                 while (!placed && attempts < maxAttempts) {
+                     let x, y;
+                     
+                     if (attempts < 300) {
+                         // Dense spiral placement for better packing
+                         const spiralStep = attempts * 0.1;
+                         const spiralRadius = spiralStep * (visualConduitRadius - cableRadius - 5) / 30;
+                         const angle = spiralStep * 2;
+                         
+                         x = Math.cos(angle) * spiralRadius;
+                         y = Math.sin(angle) * spiralRadius;
+                     } else if (attempts < 800) {
+                         // Hexagonal grid pattern for optimal packing
+                         const rows = Math.ceil(Math.sqrt(allCables.length)) + 2;
+                         const cols = Math.ceil(allCables.length / rows) + 2;
+                         const cellSize = Math.min((visualConduitRadius * 1.5) / rows, (visualConduitRadius * 1.5) / cols);
+                         
+                         const row = Math.floor((attempts - 300) / cols);
+                         const col = (attempts - 300) % cols;
+                         
+                         // Hexagonal offset
+                         const offsetX = (row % 2) * cellSize * 0.5;
+                         x = (col - cols/2) * cellSize + offsetX;
+                         y = (row - rows/2) * cellSize * 0.87; // 0.87 ≈ √3/2 for hexagonal packing
+                     } else if (attempts < 1200) {
+                         // Concentric circles with angle optimization
+                         const numRings = 6;
+                         const ring = Math.floor((attempts - 800) / 67) % numRings;
+                         const angleStep = (attempts - 800) % 67;
+                         const radius = (ring + 0.5) * (visualConduitRadius - cableRadius - 5) / numRings;
+                         const anglesInRing = Math.max(6, Math.floor(2 * Math.PI * radius / (cableRadius * 4)));
+                         const angle = (angleStep / 67) * 2 * Math.PI;
+                         
+                         x = Math.cos(angle) * radius;
+                         y = Math.sin(angle) * radius;
+                     } else {
+                         // Random placement as fallback with smaller boundary
+                         const angle = Math.random() * 2 * Math.PI;
+                         const maxRadius = visualConduitRadius - cableRadius - 3;
+                         const distance = Math.random() * maxRadius;
+                         
+                         x = Math.cos(angle) * distance;
+                         y = Math.sin(angle) * distance;
+                     }
+                     
+                     // Strict overlap checking - must ensure NO overlap
+                     if (isInsideConduitRect(x, y, cableWidth, cableHeight, visualConduitRadius)) {
+                         let overlaps = false;
+                         
+                         // Check against all placed cables with strict distance requirements
+                         for (const placedCable of placedCables) {
+                             if (rectanglesOverlap(x, y, cableWidth, cableHeight, placedCable.x, placedCable.y, placedCable.width, placedCable.height)) {
+                                 overlaps = true;
+                                 break;
+                             }
+                         }
+                         
+                         if (!overlaps) {
+                             // Optimized placement: allow cables to be very close but not overlap
+                             let tooClose = false;
+                             for (const placedCable of placedCables) {
+                                 if (rectanglesOverlap(x, y, cableWidth, cableHeight, placedCable.x, placedCable.y, placedCable.width, placedCable.height)) {
+                                     tooClose = true;
+                                     break;
+                                 }
+                             }
+                             
+                             if (!tooClose) {
+                                 // Found suitable position, create cable element
+                                 const cableElement = document.createElement('div');
+                                 cableElement.className = 'cable';
+                                 cableElement.style.backgroundColor = cable.color;
+
+                                 // Set dimensions and position based on shape
+                                 if (cable.shape === 'rectangle') {
+                                     cableElement.style.width = cableWidth + 'px';
+                                     cableElement.style.height = cableHeight + 'px';
+                                     cableElement.style.left = (visualConduitRadius + x - cableWidth/2) + 'px';
+                                     cableElement.style.top = (visualConduitRadius + y - cableHeight/2) + 'px';
+                                     cableElement.style.borderRadius = '4px'; // Slight rounding for rectangles
+
+                                     // Display dimensions
+                                     if (cableWidth > 20 && cableHeight > 20) {
+                                         cableElement.textContent = `${cable.width}×${cable.height}`;
+                                         cableElement.style.fontSize = '6px';
+                                         cableElement.style.lineHeight = cableHeight + 'px';
+                                         cableElement.style.textAlign = 'center';
+                                     }
+                                 } else {
+                                     cableElement.style.width = cableWidth + 'px';
+                                     cableElement.style.height = cableHeight + 'px';
+                                     cableElement.style.left = (visualConduitRadius + x - cableRadius) + 'px';
+                                     cableElement.style.top = (visualConduitRadius + y - cableRadius) + 'px';
+                                     cableElement.style.borderRadius = '50%'; // Circular shape
+
+                                     // Display cable diameter
+                                     if (cableRadius > 15) {
+                                         cableElement.textContent = cable.diameter + 'mm';
+                                         cableElement.style.fontSize = '8px';
+                                         cableElement.style.lineHeight = cableHeight + 'px';
+                                         cableElement.style.textAlign = 'center';
+                                     }
+                                 }
+
+                                 // Add tooltip
+                                 const tooltipText = cable.shape === 'rectangle'
+                                     ? `${cable.source}: ${cable.width}×${cable.height}mm (${cable.type})`
+                                     : `${cable.source}: ${cable.diameter}mm (${cable.type})`;
+                                 cableElement.title = tooltipText;
+
+                                 cablesContainer.appendChild(cableElement);
+                                 
+                                 // Record placed cable
+                                 placedCables.push({
+                                     x: x,
+                                     y: y,
+                                     width: cableWidth,
+                                     height: cableHeight,
+                                     radius: cableRadius,
+                                     shape: cable.shape,
+                                     diameter: cable.diameter
+                                 });
+                                 
+                                 totalPlaced++;
+                                 placed = true;
+                             }
+                         }
+                     }
+                     
+                     attempts++;
+                 }
+                 
+                 if (!placed) {
+                     console.warn(`Unable to find suitable position for cable ${cable.source} (${cable.diameter}mm) after ${maxAttempts} attempts`);
+                 }
+             });
+             
+             // Calculate actual fill ratio based only on successfully placed cables
+             const actualCableTotalArea = placedCables.reduce((sum, cable) => {
+                 const actualDiameter = cable.diameter;
+                 return sum + Math.PI * (actualDiameter / 2) ** 2;
+             }, 0);
+             const conduitArea = Math.PI * conduitRadius ** 2;
+             const actualFillRatio = (actualCableTotalArea / conduitArea * 100).toFixed(1);
+             
+             // Update display information  
+             const selectedConduit = window.selectedConduit;
+             const conduitName = selectedConduit ? selectedConduit.name : `${conduitDiameter}mm`;
+             const unplacedCount = allCables.length - totalPlaced;
+             
+             let displayInfo = `${translations[currentLang]['actual-fill-ratio']}${actualFillRatio}%`;
+             if (unplacedCount > 0) {
+                 displayInfo += `<br><span style="color: #e74c3c; font-size: 11px;">⚠️ ${unplacedCount} cables couldn't fit</span>`;
+             }
+             
+            conduitDiameterElement.innerHTML =
+                `${conduitName}<br><small>${displayInfo}</small>`;
+         }
+        
+        function updateLegend() {
+            const legendContainer = document.getElementById('legendContainer');
+            
+            if (cables.length === 0) {
+                legendContainer.innerHTML = '';
+                return;
+            }
+            
+            const legendItems = cables.map(cable => {
+                let dimensionText = '';
+                if (cable.shape === 'rectangle') {
+                    dimensionText = `${cable.width}×${cable.height}mm`;
+                } else {
+                    dimensionText = `${cable.diameter}mm`;
+                }
+
+                return `
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: ${cable.color};"></div>
+                        <span>${cable.source} (${dimensionText})</span>
+                    </div>
+                `;
+            }).join('');
+            
+            legendContainer.innerHTML = legendItems;
+        }
+        
+                 // Initialize
+         document.addEventListener('DOMContentLoaded', function() {
+             updateLanguage();
+             updateCableList();
+             updateConduitSelector(); // Initialize conduit selector
+         });
+    </script>
+</body>
+</html>
